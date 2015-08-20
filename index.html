@@ -10,7 +10,7 @@
 
 <meta name="author" content="Stuart Ward" />
 
-<meta name="date" content="2015-08-17" />
+<meta name="date" content="2015-08-20" />
 
 <title>Practical Machine Learning - Course Project - Writeup</title>
 
@@ -64,7 +64,7 @@ img {
 <div id="header">
 <h1 class="title">Practical Machine Learning - Course Project - Writeup</h1>
 <h4 class="author"><em>Stuart Ward</em></h4>
-<h4 class="date"><em>August 17, 2015</em></h4>
+<h4 class="date"><em>August 20, 2015</em></h4>
 </div>
 
 
@@ -80,11 +80,11 @@ img {
 <li>Model building and accuracy/error metrics<br />     A. Quadratic Discriminant Analysis (QDA)<br />     B. Random Forest</li>
 <li>Summary and submission score</li>
 </ol>
-<p><strong>NOTE: All R code sections in this Rmd file have been set to “eval=FALSE” for brevity</strong><br /><br></p>
+<p><br></p>
 </div>
 <div id="background" class="section level4">
 <h4><strong>1. Background</strong></h4>
-<p>Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: <a href="http://groupware.les.inf.puc-rio.br/har" class="uri">http://groupware.les.inf.puc-rio.br/har</a> (see the section on the Weight Lifting Exercise Dataset).<br /><br></p>
+<p>Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self-movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: <a href="http://groupware.les.inf.puc-rio.br/har" class="uri">http://groupware.les.inf.puc-rio.br/har</a> (see the section on the Weight Lifting Exercise Dataset).<br /><br></p>
 </div>
 <div id="data" class="section level4">
 <h4><strong>2. Data</strong></h4>
@@ -99,7 +99,7 @@ img {
 <div id="high-level-strategy" class="section level4">
 <h4><strong>4. High-level strategy</strong></h4>
 <p>For this project, I utilized a method recommended by a Kaggle competition winner. The essence of the strategy is to get an initial model as quick as possible and utilize that as a benchmark and a data point for further improvements.</p>
-<p>Two techniques to achieve this strategy are two find quick ways to simplify the data to only ‘clean’ rows/columns of data, and utilize a model that trains very quickly.</p>
+<p>Two techniques to achieve this strategy are to (1) find quick ways to simplify the data to only ‘clean’ rows/columns of data, and (2) utilize a model that trains very quickly.</p>
 <p>I also keep in mind the words of wisdom from <strong>Nate Silver</strong>, when asked about his tools/process: “I use Stata for anything hardcore and Excel for the rest.”<br /><br></p>
 </div>
 <div id="initial-data-analysis-and-prep" class="section level4">
@@ -118,12 +118,14 @@ testing &lt;- testing[,-c(1,2,3,4,5,6,7,60)]</code></pre>
 </div>
 <div id="model-building-and-accuracyerror-metrics" class="section level4">
 <h4><strong>6. Model building and accuracy/error metrics</strong></h4>
-<p>     <strong>A.</strong> This is a large, dense, robust data set; which is a sign that we may not need to incur the performance and time costs that come with K-fold cross validation. The first model will utilize a simple hold-out validation set, consisting of a 70/30 random stratified split of the training data.</p>
-<pre class="r"><code>library(caret)
-InTrain &lt;- createDataPartition(y = training$classe, p=0.7, list=FALSE)
+<p>     <strong>A.</strong> This is a large, dense, robust data set; which is a sign that we <strong>may not need to incur the performance and time costs that come with K-fold cross validation</strong>. The first model will utilize the cross validation method of a simple hold-out validation set, consisting of a 70/30 random stratified split of the training data.</p>
+<pre class="r"><code>library(caret)</code></pre>
+<pre><code>## Loading required package: lattice
+## Loading required package: ggplot2</code></pre>
+<pre class="r"><code>InTrain &lt;- createDataPartition(y = training$classe, p=0.7, list=FALSE)
 trainingForModel &lt;- training[InTrain,]
 trainingForValidation &lt;- training[-InTrain,]</code></pre>
-<p>QDA is known to be a fast training (surprisingly accurate) algorithm; this is the first model I’ll train</p>
+<p>QDA is known to be a fast training (and surprisingly accurate) algorithm; this is the first model I’ll train</p>
 <pre class="r"><code>library(MASS)</code></pre>
 <p>Set start time to determine how long it takes to train the model</p>
 <pre class="r"><code>startTime &lt;- Sys.time()</code></pre>
@@ -132,16 +134,50 @@ trainingForValidation &lt;- training[-InTrain,]</code></pre>
 <p>Stop timer and report on training time</p>
 <pre class="r"><code>runTime &lt;- Sys.time() - startTime
 runTime</code></pre>
+<pre><code>## Time difference of 0.5626278 secs</code></pre>
 <p>Predict using the model on the 30% of the training data</p>
 <pre class="r"><code>qdaPred &lt;- predict(qdaTrain, newdata = trainingForValidation[,-53])</code></pre>
 <p>Display the results of the predictions</p>
 <pre class="r"><code>confusionMatrix(qdaPred$class, trainingForValidation$classe)</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 1552   60    0    0    0
+##          B   52  958   51    5   33
+##          C   32  109  961  133   32
+##          D   29    1    9  815   27
+##          E    9   11    5   11  990
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.8965          
+##                  95% CI : (0.8885, 0.9042)
+##     No Information Rate : 0.2845          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
+##                                           
+##                   Kappa : 0.8693          
+##  Mcnemar's Test P-Value : &lt; 2.2e-16       
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            0.9271   0.8411   0.9366   0.8454   0.9150
+## Specificity            0.9858   0.9703   0.9370   0.9866   0.9925
+## Pos Pred Value         0.9628   0.8717   0.7585   0.9251   0.9649
+## Neg Pred Value         0.9714   0.9622   0.9859   0.9702   0.9811
+## Prevalence             0.2845   0.1935   0.1743   0.1638   0.1839
+## Detection Rate         0.2637   0.1628   0.1633   0.1385   0.1682
+## Detection Prevalence   0.2739   0.1867   0.2153   0.1497   0.1743
+## Balanced Accuracy      0.9564   0.9057   0.9368   0.9160   0.9537</code></pre>
 <hr />
-<p><strong>Summary of <span style="color:red">QDA</span> model results (the process above was repeated several times to verify model stability)</strong><br /><strong>- The time to train the model was 0.4 seconds</strong><br /><strong>- The model accuracy was consistently around 90% (out of sample error = 10%)</strong></p>
+<p><strong>Summary of <span style="color:red">QDA</span> model results</strong><br /><strong>- The time to train the model is less than one second</strong><br /><strong>- The model accuracy is greater than 89% (out of sample error &lt; 11%)</strong></p>
 <hr />
 <p>Given the speed of training, the QDA model accuracy is quite high.<br /><br></p>
 <p>     <strong>B.</strong> Next, I utilize the Random Forest algorithm to see if it improves the model accuracy, yet still trains in a reasonable amount of time.</p>
 <pre class="r"><code>library(randomForest)</code></pre>
+<pre><code>## randomForest 4.6-10
+## Type rfNews() to see new features/changes/bug fixes.</code></pre>
 <p>Set start time to determine how long it takes to train the model</p>
 <pre class="r"><code>startTime &lt;- Sys.time()</code></pre>
 <p>Train the model on the 70% of the training data</p>
@@ -149,12 +185,44 @@ runTime</code></pre>
 <p>Stop timer and report on training time</p>
 <pre class="r"><code>runTime &lt;- Sys.time() - startTime
 runTime</code></pre>
+<pre><code>## Time difference of 30.41635 secs</code></pre>
 <p>Predict using the model on the 30% of the training data</p>
 <pre class="r"><code>rfPred &lt;- predict(rfTrain, newdata = trainingForValidation)</code></pre>
 <p>Display the results of the predictions</p>
 <pre class="r"><code>confusionMatrix(rfPred, trainingForValidation$classe)</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 1674    8    0    0    0
+##          B    0 1126    4    0    0
+##          C    0    5 1018   11    1
+##          D    0    0    4  952    0
+##          E    0    0    0    1 1081
+## 
+## Overall Statistics
+##                                          
+##                Accuracy : 0.9942         
+##                  95% CI : (0.9919, 0.996)
+##     No Information Rate : 0.2845         
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16      
+##                                          
+##                   Kappa : 0.9927         
+##  Mcnemar's Test P-Value : NA             
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            1.0000   0.9886   0.9922   0.9876   0.9991
+## Specificity            0.9981   0.9992   0.9965   0.9992   0.9998
+## Pos Pred Value         0.9952   0.9965   0.9836   0.9958   0.9991
+## Neg Pred Value         1.0000   0.9973   0.9984   0.9976   0.9998
+## Prevalence             0.2845   0.1935   0.1743   0.1638   0.1839
+## Detection Rate         0.2845   0.1913   0.1730   0.1618   0.1837
+## Detection Prevalence   0.2858   0.1920   0.1759   0.1624   0.1839
+## Balanced Accuracy      0.9991   0.9939   0.9944   0.9934   0.9994</code></pre>
 <hr />
-<p><strong>Summary of <span style="color:red">Random Forest</span> model results (the process above was repeated several times to verify model stability)</strong><br /><strong>- The time to train the model was 30 seconds</strong><br /><strong>- The model accuracy was consistently around 99.5% (out of sample error &lt; 1%)</strong></p>
+<p><strong>Summary of <span style="color:red">Random Forest</span> model results</strong><br /><strong>- The time to train the model is approximately 30 seconds</strong><br /><strong>- The model accuracy is greater than 99% (out of sample error &lt; 1%)</strong><br /><strong>- The results confirm that <em>K-fold cross validation is not necessary</em> to produce a highly accurate model. For this particular data set, utilizing the cross validation method of a simple random stratified split of the data is appropriate.</strong></p>
 <hr />
 <p>The Random Forest model significantly improves accuracy and maintains reasonable training times.<br /><br></p>
 </div>
@@ -172,7 +240,7 @@ pml_write_files = function(x){
         }
 }
 pml_write_files(answers)</code></pre>
-<p>The training data was such that very little preprocessing was necessary; only a simple random stratified split of the training data was needed; and no model tuning was necessary to achieve a predictive accuracy &gt; 99%. <br><br></p>
+<p>The training data was such that very little preprocessing was necessary; a cross validation method of a simple random stratified split of the training data was appropriate; and no model tuning was necessary to achieve a predictive accuracy &gt; 99%. <br><br></p>
 </div>
 
 
